@@ -1,7 +1,49 @@
-.DS_Store
-.env
-/node_modules/
+# Environment files
+.env.*
+!.env.example
 
-# React Router
-/.react-router/
+# OS generated files
+Thumbs.db
+ehthumbs.db
+*.log
+*.tmp
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Build/directories and artifacts
+/dist/
+/out/
+/coverage/
+/.next/
+.vercel/
+.cache/
+.pnpm-debug.log
+
+# Test and debug outputs
+/coverage/
+*.test.ts
+*.test.tsx
+
+# TypeScript
+*.tsbuildinfo
+
+# Miscellaneous
+node_modules/
+yarn.lock
+pnpm-lock.yaml
+package-lock.json
+*.local
+npm-debug.log*
+.DS_Store
+
+# Remix & React Router catch-all (future-proof)
+/public/build/
+/.remix/
+/.react-router-cache/
+app/.cache/
 /build/
+/.react-router/
