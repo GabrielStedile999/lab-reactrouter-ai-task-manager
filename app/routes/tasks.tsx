@@ -1,3 +1,5 @@
+import { TasksList } from "~/features/tasks/tasks-list";
+
 export default function () {
-	return <p>Tasks Page</p>;
+	return <TasksList />;
 }

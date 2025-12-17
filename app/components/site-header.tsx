@@ -6,6 +6,7 @@ import { SidebarTrigger } from "~/components/ui/sidebar";
 const routeTitles: Record<string, string> = {
 	"/": "Dashboard",
 	"/tasks": "Tasks",
+	"/task/new": "New Task",
 };
 
 export function SiteHeader() {
