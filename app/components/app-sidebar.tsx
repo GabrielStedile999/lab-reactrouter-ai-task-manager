@@ -15,7 +15,7 @@ import {
 	IconSettings,
 	IconUsers,
 } from "@tabler/icons-react";
-import { ListCheckIcon } from "lucide-react";
+import { ListCheckIcon, UsersIcon } from "lucide-react";
 import type * as React from "react";
 
 import { NavDocuments } from "~/components/nav-documents";
@@ -43,6 +43,11 @@ const data = {
 			title: "Dashboard",
 			url: "/",
 			icon: IconDashboard,
+		},
+		{
+			title: "Users",
+			url: "/users",
+			icon: UsersIcon,
 		},
 		{
 			title: "Tasks",
