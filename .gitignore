@@ -47,3 +47,5 @@ npm-debug.log*
 app/.cache/
 /build/
 /.react-router/
+
+/app/generated/prisma
