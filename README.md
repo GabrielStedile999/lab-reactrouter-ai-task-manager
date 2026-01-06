@@ -34,6 +34,23 @@ npm run dev
 
 Your application will be available at `http://localhost:5173`.
 
+## Main Commands
+
+### Seed Database
+
+Run the seed to populate the database with sample data (20 users and 60 posts):
+
+```bash
+npx prisma db seed
+```
+
+### Other Useful Commands
+
+- **Development**: `npm run dev` - Start the development server with HMR
+- **Build**: `npm run build` - Create a production build
+- **Type Check**: `npm run typecheck` - Check TypeScript types
+- **Start Production**: `npm start` - Start the production server
+
 ## Building for Production
 
 Create a production build:
