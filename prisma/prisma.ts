@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { PrismaClient } from "../app/generated/prisma/client";
 
