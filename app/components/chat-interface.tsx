@@ -1,18 +1,28 @@
 import { Bot, Send, User } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher, useLoaderData } from "react-router";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
+import type { ChatMessage } from "~/features/tasks/types";
 import type { loader } from "~/routes/task-new";
+
+type DisplayMessage = ChatMessage & { isPending?: boolean };
 
 export function ChatInterface() {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [optimisticMessage, setOptimisticMessage] =
+		useState<DisplayMessage | null>(null);
 	const fetcher = useFetcher();
 	const isLoading =
 		fetcher.state === "submitting" || fetcher.state === "loading";
 	const { chatId, messages } = useLoaderData<typeof loader>();
+
+	const displayedMessages: DisplayMessage[] = optimisticMessage
+		? [...messages, optimisticMessage]
+		: messages;
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -21,10 +31,52 @@ export function ChatInterface() {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: <todo>
 	useEffect(() => {
 		scrollToBottom();
-	}, [messages]);
+	}, [displayedMessages]);
+
+	useEffect(() => {
+		if (fetcher.state !== "submitting") return;
+
+		const message = fetcher.formData?.get("message");
+		if (typeof message !== "string" || message.trim().length === 0) {
+			setOptimisticMessage(null);
+			return;
+		}
+
+		setOptimisticMessage({
+			id: `optimistic-${Date.now()}`,
+			role: "user",
+			content: message,
+			timestamp: new Date(),
+			isPending: true,
+		});
+	}, [fetcher.state, fetcher.formData]);
+
+	useEffect(() => {
+		if (!optimisticMessage) return;
+		const isMessagePersisted = messages.some(
+			(message) =>
+				message.role === "user" &&
+				message.content === optimisticMessage.content,
+		);
+		if (isMessagePersisted) {
+			setOptimisticMessage(null);
+		}
+	}, [messages, optimisticMessage]);
+
+	const handleSubmit = () => {
+		if (!inputRef.current) return;
+		const currentInput = inputRef.current;
+		const value = currentInput.value.trim();
+		if (!value) return;
+
+		requestAnimationFrame(() => {
+			currentInput.value = "";
+			currentInput.focus();
+		});
+	};
 
 	return (
-		<Card className="w-full max-w-2xl h-[600px] flex flex-col shadow-2xl backdrop-blur-sm bg-card/95">
+		<Card className="w-full h-full flex flex-col shadow-2xl backdrop-blur-sm bg-card/95">
 			{/* Header */}
 			<div className="flex items-center gap-3 p-4 border-b bg-primary/5">
 				<Avatar className="h-10 w-10 bg-primary">
@@ -58,10 +110,12 @@ export function ChatInterface() {
 					</div>
 				)}
 
-				{messages.map((message) => (
+				{displayedMessages.map((message) => (
 					<div
 						key={message.id}
-						className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+						className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : "flex-row"} ${
+							message.isPending ? "opacity-70" : ""
+						}`}
 					>
 						<Avatar
 							className={`h-8 w-8 ${message.role === "user" ? "bg-secondary" : "bg-primary"}`}
@@ -96,10 +150,12 @@ export function ChatInterface() {
 								</p>
 							</div>
 							<span className="text-xs text-muted-foreground mt-1 px-1">
-								{new Date(message.timestamp).toLocaleTimeString([], {
-									hour: "2-digit",
-									minute: "2-digit",
-								})}
+								{message.isPending
+									? "aguardando..."
+									: new Date(message.timestamp).toLocaleTimeString([], {
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
 							</span>
 						</div>
 					</div>
@@ -109,12 +165,17 @@ export function ChatInterface() {
 
 			{/* Input */}
 			<div className="p-4 border-t bg-card">
-				<fetcher.Form action="/api/chat" method="post" className="flex gap-2">
+				<fetcher.Form
+					action="/api/chat"
+					method="post"
+					className="flex gap-2"
+					onSubmit={handleSubmit}
+				>
 					<input type="hidden" name="chatId" value={chatId ?? ""} />
 					<Input
+						ref={inputRef}
 						name="message"
 						placeholder="Type your message..."
-						disabled={isLoading}
 						className="flex-1 bg-background"
 					/>
 					<Button
