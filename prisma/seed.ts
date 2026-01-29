@@ -118,6 +118,12 @@ async function main() {
 						? faker.lorem.paragraphs({ min: 1, max: 3 }) 
 						: null,
 					chat_history: null,
+					chat: {
+						create: {
+							title: faker.lorem.sentence({ min: 3, max: 6 }),
+							content: faker.lorem.paragraphs({ min: 1, max: 3 }),
+						},
+					},
 				},
 			});
 			})

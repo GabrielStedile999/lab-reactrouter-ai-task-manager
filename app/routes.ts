@@ -10,4 +10,5 @@ export default [
   ]),
   // Catch-all route outside layout to avoid interfering with POST requests
   route("*", "routes/catch-all.tsx"),
+  route("api/chat", "routes/api.chat.ts"),
 ] satisfies RouteConfig;

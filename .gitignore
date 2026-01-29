@@ -40,6 +40,8 @@ package-lock.json
 *.local
 npm-debug.log*
 .DS_Store
+dev.db
+database.sqlite
 
 # Remix & React Router catch-all (future-proof)
 /public/build/
