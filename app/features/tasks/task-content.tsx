@@ -6,6 +6,7 @@ import {
 	ListOrdered,
 	TestTube,
 } from "lucide-react";
+import { useLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
 	Card,
@@ -14,55 +15,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "~/components/ui/card";
-
-interface TaskData {
-	title: string;
-	description: string;
-	estimated_time: string;
-	steps: string[];
-	suggested_tests: string[];
-	acceptance_criteria: string[];
-	implementation_suggestion: string;
-}
-
-const mockTaskData: TaskData = {
-	title: "Secure Login Form with Authentication",
-	description:
-		"Implement a modern login form with field validation, session-based authentication, and real-time error feedback.",
-	estimated_time: "2 days",
-	steps: [
-		"Create a form component using React",
-		"Add field validation using a suitable library",
-		"Connect backend for user authentication",
-		"Persist sessions using SQLite",
-		"Test full login and logout flow",
-	],
-	suggested_tests: [
-		"it('should render login form correctly')",
-		"it('should validate input fields')",
-		"it('should authenticate valid credentials')",
-		"it('should prevent access with invalid credentials')",
-	],
-	acceptance_criteria: [
-		"Login form displays properly with required fields",
-		"Invalid input is correctly flagged",
-		"Valid users can log in and maintain a session",
-		"Users are redirected upon login and logout",
-	],
-	implementation_suggestion:
-		"Use React Hook Form for input validation, Prisma ORM for managing user data, and configure protected routes using React Router 7.",
-};
+import type { loader } from "~/routes/task-new";
 
 export function TaskContent() {
-	const {
-		title,
-		description,
-		estimated_time,
-		steps,
-		suggested_tests,
-		acceptance_criteria,
-		implementation_suggestion,
-	} = mockTaskData;
+	const { task } = useLoaderData<typeof loader>();
+
+	if (!task.title) {
+		return null;
+	}
 
 	return (
 		<div className="space-y-6">
@@ -71,9 +31,9 @@ export function TaskContent() {
 				<CardHeader>
 					<div className="flex items-center gap-3">
 						<FileText className="h-5 w-5 text-primary" />
-						<CardTitle>{title}</CardTitle>
+						<CardTitle>{task.title}</CardTitle>
 					</div>
-					<CardDescription className="mt-2">{description}</CardDescription>
+					<CardDescription className="mt-2">{task.description}</CardDescription>
 				</CardHeader>
 			</Card>
 
@@ -86,7 +46,7 @@ export function TaskContent() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<p className="text-lg font-medium">{estimated_time}</p>
+					<p className="text-lg font-medium">{task.estimated_time}</p>
 				</CardContent>
 			</Card>
 
@@ -100,7 +60,7 @@ export function TaskContent() {
 				</CardHeader>
 				<CardContent>
 					<ol className="space-y-2 list-decimal list-inside">
-						{steps.map((step) => (
+						{task.steps.map((step) => (
 							<li key={step} className="text-sm">
 								{step}
 							</li>
@@ -119,7 +79,7 @@ export function TaskContent() {
 				</CardHeader>
 				<CardContent>
 					<ul className="space-y-2">
-						{suggested_tests.map((test) => (
+						{task.suggested_tests.map((test) => (
 							<li key={test} className="text-sm font-mono bg-muted p-2 rounded">
 								{test}
 							</li>
@@ -138,7 +98,7 @@ export function TaskContent() {
 				</CardHeader>
 				<CardContent>
 					<ul className="space-y-2">
-						{acceptance_criteria.map((criterion) => (
+						{task.acceptance_criteria.map((criterion) => (
 							<li key={criterion} className="flex items-start gap-2 text-sm">
 								<CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
 								<span>{criterion}</span>
@@ -157,7 +117,9 @@ export function TaskContent() {
 					</div>
 				</CardHeader>
 				<CardContent>
-					<p className="text-sm leading-relaxed">{implementation_suggestion}</p>
+					<p className="text-sm leading-relaxed">
+						{task.implementation_suggestion}
+					</p>
 				</CardContent>
 			</Card>
 

@@ -31,13 +31,32 @@ model Post {
 model Chat {
   id        String     @id @default(uuid())
   title     String?
-  content   String
   task      Task?
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
+
+  messages ChatMessage[]
+
   @@map("chats")
 }
+enum ChatMessageRole {
+  user
+  assistant
+  system
+}
 
+model ChatMessage {
+  id        String     @id @default(uuid())
+  content   String
+  role      ChatMessageRole @default(user)
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+
+  chat_id String
+  chat Chat @relation(fields: [chat_id], references: [id])
+
+  @@map("chat_message")
+}
 
 model Task {
   id                        String   @id @default(uuid())
@@ -50,7 +69,7 @@ model Task {
   suggested_tests           String?
   content                   String?
   chat_history              String?
-  chat_id                   String      @unique @map("chat_id")
+  chat_id                   String      @unique
   chat                      Chat     @relation(fields: [chat_id], references: [id])
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt

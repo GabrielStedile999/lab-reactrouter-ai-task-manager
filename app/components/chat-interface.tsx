@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
-import type { ChatMessage } from "~/features/tasks/types";
+import type { ChatMessage } from "~/generated/prisma/client";
 import type { loader } from "~/routes/task-new";
 
 type DisplayMessage = ChatMessage & { isPending?: boolean };
@@ -42,13 +42,18 @@ export function ChatInterface() {
 			return;
 		}
 
+		const now = Date.now();
+		const date = new Date();
+
 		setOptimisticMessage({
-			id: `optimistic-${Date.now()}`,
+			chat_id: `optimistic-${now}`,
+			id: `optimistic-${now}`,
 			role: "user",
 			content: message,
-			timestamp: new Date(),
+			created_at: date,
+			updated_at: date,
 			isPending: true,
-		});
+		} as DisplayMessage);
 	}, [fetcher.state, fetcher.formData]);
 
 	useEffect(() => {
@@ -152,7 +157,7 @@ export function ChatInterface() {
 							<span className="text-xs text-muted-foreground mt-1 px-1">
 								{message.isPending
 									? "aguardando..."
-									: new Date(message.timestamp).toLocaleTimeString([], {
+									: message.created_at?.toLocaleTimeString([], {
 											hour: "2-digit",
 											minute: "2-digit",
 										})}
@@ -171,7 +176,6 @@ export function ChatInterface() {
 					className="flex gap-2"
 					onSubmit={handleSubmit}
 				>
-					<input type="hidden" name="chatId" value={chatId ?? ""} />
 					<Input
 						ref={inputRef}
 						name="message"
