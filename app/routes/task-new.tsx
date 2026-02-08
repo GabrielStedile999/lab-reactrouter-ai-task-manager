@@ -1,7 +1,7 @@
 import prisma from "prisma/prisma";
 import { redirect } from "react-router";
 import { TasksChatbot } from "~/features/tasks/tasks-chatbot";
-import { ChatMessageRole, type ChatMessage } from "~/generated/prisma/client";
+import { type ChatMessage, ChatMessageRole } from "~/generated/prisma/client";
 import type { Route } from "./+types/task-new";
 
 export type Task = {
@@ -14,6 +14,49 @@ export type Task = {
 	implementation_suggestion: string;
 };
 
+export async function action({ request }: Route.ActionArgs) {
+	const formData = await request.formData();
+	const message_id = formData.get("message_id");
+	const task_id = formData.get("task_id") as string;
+	const chatMessageId = typeof message_id === "string" ? message_id : undefined;
+
+	const message = await prisma.chatMessage.findUnique({
+		where: {
+			id: chatMessageId,
+		},
+	});
+
+	if (!message) {
+		return { error: "Mensagem não encontrada" };
+	}
+
+	const content = JSON.parse(message.content);
+
+	const taskData = {
+		title: content.title,
+		description: content.description,
+		steps: JSON.stringify(content.steps),
+		acceptance_criteria: JSON.stringify(content.acceptance_criteria),
+		suggested_tests: JSON.stringify(content.suggested_tests),
+		estimated_time: content.estimated_time,
+		implementation_suggestion: content.implementation_suggestion,
+		chat_message_id: chatMessageId,
+	};
+
+	if (task_id) {
+		await prisma.task.update({
+			where: {
+				id: task_id,
+			},
+			data: taskData,
+		});
+	} else {
+		await prisma.task.create({
+			data: taskData,
+		});
+	}
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
 	const url = new URL(request.url);
 	const chatId = url.searchParams.get("chat");
@@ -21,12 +64,20 @@ export async function loader({ request }: Route.LoaderArgs) {
 	let messages = [] as ChatMessage[];
 	// biome-ignore lint/suspicious/noImplicitAnyLet: <todo>
 	let taskJson;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: <todo>
+	let message_id;
+	// biome-ignore lint/suspicious/noImplicitAnyLet: <todo>
+	let task_id;
 
 	if (chatId) {
 		const chat = await prisma.chat.findUnique({
 			where: { id: chatId },
 			include: {
-				messages: true,
+				messages: {
+					include: {
+						task: true,
+					},
+				},
 			},
 		});
 
@@ -45,10 +96,19 @@ export async function loader({ request }: Route.LoaderArgs) {
 		}));
 		``;
 
-		taskJson = chat.messages[messages.length - 1].content;
+		const message = chat.messages[messages.length - 1];
+		taskJson = message.content;
+		message_id = message.id;
+		task_id = message.task?.id;
 	}
 
-	return { chatId, messages, task: JSON.parse(taskJson ?? "{}") as Task };
+	return {
+		chatId,
+		messages,
+		message_id,
+		task_id,
+		task: JSON.parse(taskJson ?? "{}") as Task,
+	};
 }
 
 export default function () {

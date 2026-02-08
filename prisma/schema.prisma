@@ -31,7 +31,6 @@ model Post {
 model Chat {
   id        String     @id @default(uuid())
   title     String?
-  task      Task?
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
 
@@ -39,6 +38,7 @@ model Chat {
 
   @@map("chats")
 }
+
 enum ChatMessageRole {
   user
   assistant
@@ -55,6 +55,8 @@ model ChatMessage {
   chat_id String
   chat Chat @relation(fields: [chat_id], references: [id])
 
+  task      Task?
+
   @@map("chat_message")
 }
 
@@ -69,10 +71,11 @@ model Task {
   suggested_tests           String?
   content                   String?
   chat_history              String?
-  chat_id                   String      @unique
-  chat                      Chat     @relation(fields: [chat_id], references: [id])
   created_at                DateTime @default(now())
   updated_at                DateTime @updatedAt
+
+  chat_message                      ChatMessage?     @relation(fields: [chat_message_id], references: [id])
+  chat_message_id                   String?      @unique
 
   @@map("tasks")
 }
