@@ -1,5 +1,7 @@
-import { Calendar, Clock, FileText, ListTodo } from "lucide-react";
+import { Clock, FileText, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -9,22 +11,6 @@ import {
 	TableRow,
 } from "~/components/ui/table";
 import type { Route } from "../../routes/+types/tasks";
-
-function formatDate(date: Date | string): string {
-	const d = typeof date === "string" ? new Date(date) : date;
-	return new Intl.DateTimeFormat("en-US", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	}).format(d);
-}
-
-function truncateText(text: string, maxLength: number = 100): string {
-	if (text.length <= maxLength) return text;
-	return text.slice(0, maxLength) + "...";
-}
 
 export function TasksList({
 	loaderData,
@@ -42,31 +28,21 @@ export function TasksList({
 				<Table>
 					<TableHeader>
 						<TableRow>
-							<TableHead className="w-[120px]">
-								<div className="flex items-center gap-2">
-									<ListTodo className="h-4 w-4" />
-									ID
-								</div>
-							</TableHead>
-							<TableHead className="w-[200px]">
+							<TableHead className="w-[300px]">
 								<div className="flex items-center gap-2">
 									<FileText className="h-4 w-4" />
 									Title
 								</div>
 							</TableHead>
-							<TableHead className="w-[300px]">Description</TableHead>
-							<TableHead className="w-[150px]">
+
+							<TableHead className="w-[100px]">
 								<div className="flex items-center gap-2">
 									<Clock className="h-4 w-4" />
 									Estimated Time
 								</div>
 							</TableHead>
-							<TableHead className="w-[180px]">
-								<div className="flex items-center gap-2">
-									<Calendar className="h-4 w-4" />
-									Created At
-								</div>
-							</TableHead>
+
+							<TableHead className="w-[1%] text-center">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -79,22 +55,65 @@ export function TasksList({
 						) : (
 							loaderData.tasks.map((task) => (
 								<TableRow key={task.id}>
-									<TableCell className="font-medium font-mono text-xs w-[120px]">
-										{task.id.slice(0, 8)}...
+									<TableCell className="font-medium w-[300px]">
+										<Link 
+											to={`/task/view/${task.id}`}
+											className="decoration-dotted underline underline-offset-4">
+												{task.title}
+										</Link>
 									</TableCell>
-									<TableCell className="font-medium w-[200px]">
-										{task.title}
-									</TableCell>
-									<TableCell className="w-[300px] max-w-[300px]">
-										<div className="truncate" title={task.description}>
-											{truncateText(task.description, 80)}
-										</div>
-									</TableCell>
-									<TableCell className="w-[150px]">
+
+									<TableCell className="w-[100px]">
 										{task.estimated_time}
 									</TableCell>
-									<TableCell className="w-[180px]">
-										{formatDate(task.created_at)}
+
+									<TableCell>
+										<div className="flex items-center gap-2">
+											{task.chat_message ? (
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8"
+													title="Chat"
+													asChild
+												>
+													<Link
+														to={`/task/new?chat=${task.chat_message.chat_id}`}
+													>
+														<MessageCircle className="h-4 w-4" />
+													</Link>
+												</Button>
+											) : (
+												<Button
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8"
+													title="Chat"
+													disabled
+												>
+													<MessageCircle className="h-4 w-4" />
+												</Button>
+											)}
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8"
+												title="Edit task"
+												asChild
+											>
+												<Link to={`/task/edit/${task.id}`}>
+													<Pencil className="h-4 w-4" />
+												</Link>
+											</Button>
+											<Button
+												variant="ghost"
+												size="icon"
+												className="h-8 w-8 text-destructive hover:text-destructive"
+												title="Delete task"
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</div>
 									</TableCell>
 								</TableRow>
 							))

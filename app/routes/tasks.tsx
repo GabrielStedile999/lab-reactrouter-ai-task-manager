@@ -8,6 +8,9 @@ export async function loader() {
 			orderBy: {
 				created_at: "desc",
 			},
+			include: {
+				chat_message: true,
+			},
 		}),
 	};
 }
