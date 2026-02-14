@@ -94,12 +94,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 						: "✅ Solicitação atendida. Verifique o painel ao lado 👉"
 					: message.content,
 		}));
-		``;
-
-		const message = chat.messages[messages.length - 1];
-		taskJson = message.content;
-		message_id = message.id;
-		task_id = message.task?.id;
+		const lastMessage = chat.messages[chat.messages.length - 1];
+		if (lastMessage) {
+			taskJson = lastMessage.content;
+			message_id = lastMessage.id;
+			task_id = lastMessage.task?.id;
+		}
 	}
 
 	return {

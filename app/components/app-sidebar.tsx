@@ -1,5 +1,5 @@
 import { IconDashboard, IconInnerShadowTop } from "@tabler/icons-react";
-import { ListCheckIcon, UsersIcon } from "lucide-react";
+import { ListCheckIcon, MessageCircleDashed, UsersIcon } from "lucide-react";
 import type * as React from "react";
 
 import { NavMain } from "~/components/nav-main";
@@ -35,6 +35,11 @@ const data = {
 			title: "Tasks",
 			url: "/tasks",
 			icon: ListCheckIcon,
+		},
+		{
+			title: "Chats",
+			url: "/chats",
+			icon: MessageCircleDashed,
 		},
 	],
 };

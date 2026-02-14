@@ -1,5 +1,5 @@
 import { Clock, FileText, MessageCircle, Pencil, Trash2 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useFetcher } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -17,6 +17,8 @@ export function TasksList({
 }: {
 	loaderData: Route.ComponentProps["loaderData"];
 }) {
+	const fetcherDelete = useFetcher();
+
 	return (
 		<div className="container mx-auto py-6 space-y-4">
 			<div className="flex items-center justify-between">
@@ -110,6 +112,12 @@ export function TasksList({
 												size="icon"
 												className="h-8 w-8 text-destructive hover:text-destructive"
 												title="Delete task"
+												onClick={() =>
+													fetcherDelete.submit(
+														{ action: "deleteTask", task_id: task.id },
+														{ method: "post" },
+													)
+												}
 											>
 												<Trash2 className="h-4 w-4" />
 											</Button>
