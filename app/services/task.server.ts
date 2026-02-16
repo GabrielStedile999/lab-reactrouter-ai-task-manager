@@ -2,6 +2,7 @@ import type { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import prisma from "prisma/prisma";
 import { z } from "zod";
+import { cache } from "./cache";
 import { client } from "./chat.server";
 
 export const TaskInputSchema = z.object({
@@ -15,6 +16,69 @@ export const TaskInputSchema = z.object({
 });
 
 export type TaskData = z.infer<typeof TaskInputSchema>;
+
+export type SimilarTask = {
+  id: string;
+  title: string;
+  description: string | null;
+  estimated_time: string | null;
+  similarity_score: number;
+  chunk_content: string;
+};
+
+export async function findSimilarTasks(
+  title: string,
+  limit: number = 3,
+  cutOff: number = 0.45
+) {
+  try {
+    const cachedSimilarTasks = await cache.get(title);
+    if (cachedSimilarTasks) {
+      return JSON.parse(cachedSimilarTasks);
+    }
+  } catch (error) {
+    console.warn("Cache unavailable, skipping read:", error);
+  }
+
+  try {
+    const response = await client.embeddings.create({
+      model: "text-embedding-3-large",
+      input: title,
+    });
+    const queryEmbedding = response.data[0].embedding;
+
+    validateEmbedding(queryEmbedding);
+
+    const similarTasks = await prisma.$queryRaw<SimilarTask[]>`
+        SELECT 
+          t.id,
+          t.title,
+          t.description,
+          t.estimated_time,
+          e.chunk_content,
+          (1 - vector_distance_cos(e.embedding, vector32(${JSON.stringify(
+            queryEmbedding
+          )}))) as similarity_score
+        FROM task_embeddings e
+        JOIN tasks t ON t.id = e.task_id
+        WHERE t.title != ${title}
+        AND similarity_score > ${cutOff}
+        ORDER BY similarity_score DESC
+        LIMIT ${limit}
+      `;
+
+    try {
+      await cache.set(title, JSON.stringify(similarTasks), "EX", 60 * 60 * 24);
+    } catch (error) {
+      console.warn("Cache unavailable, skipping write:", error);
+    }
+
+    return similarTasks;
+  } catch (error) {
+    console.error("Error finding similar tasks:", error);
+    throw new Error("Failed to find similar tasks");
+  }
+}
 
 export async function storeTaskAsEmbeddings(
   taskId: string,
@@ -53,6 +117,7 @@ export async function storeTaskAsEmbeddings(
   }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: <todo>
 function validateEmbedding(embedding: any) {
   if (!Array.isArray(embedding) || embedding.length !== 3072) {
     throw new Error("Invalid embedding size");
@@ -80,14 +145,14 @@ async function taskToMarkdown(data: TaskData) {
     md += `# ${data.title}\n\n`;
   }
   if (data.description) {
-    md += `**Descrição:**  \n${data.description}\n\n`;
+    md += `**Description:**  \n${data.description}\n\n`;
   }
   if (data.estimated_time) {
-    md += `**Tempo Estimado:**  \n${data.estimated_time}\n\n`;
+    md += `**Estimated Time:**  \n${data.estimated_time}\n\n`;
   }
   if (data.steps) {
     md +=
-      "## Passos\n\n" +
+      "## Steps\n\n" +
       formatList(data.steps, "1.").replace(
         /1\./g,
         (m, i, str) => `${str.slice(0, i).split("1.").length}.`
@@ -95,16 +160,16 @@ async function taskToMarkdown(data: TaskData) {
       "\n\n";
   }
   if (data.suggested_tests) {
-    md += "## Testes Sugeridos\n\n" + formatList(data.suggested_tests) + "\n\n";
+    md += "## Suggested Tests\n\n" + formatList(data.suggested_tests) + "\n\n";
   }
   if (data.acceptance_criteria) {
     md +=
-      "## Critérios de Aceitação\n\n" +
+      "## Acceptance Criteria\n\n" +
       formatList(data.acceptance_criteria) +
       "\n\n";
   }
   if (data.implementation_suggestion) {
-    md += `**Sugestão de Implementação:**  \n${data.implementation_suggestion}\n`;
+    md += `**Implementation Suggestion:**  \n${data.implementation_suggestion}\n`;
   }
 
   return md.trim();
