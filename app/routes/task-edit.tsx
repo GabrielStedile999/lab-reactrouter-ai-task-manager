@@ -1,6 +1,7 @@
 import prisma from "prisma/prisma";
 import { redirect } from "react-router";
 import { TaskForm } from "~/features/tasks/task-form";
+import { storeTaskAsEmbeddings } from "~/services/task.server";
 import type { Route } from "./+types/task-edit";
 
 const prepareListData = (str: string) =>
@@ -36,6 +37,8 @@ export async function action({ request }: Route.ActionArgs) {
 			},
 			data: taskData,
 		});
+
+		await storeTaskAsEmbeddings(task_id, taskData);
 
 		return { success: true };
 	} catch (error) {
