@@ -9,6 +9,9 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import "@copilotkit/react-ui/styles.css";
+import { CopilotKit } from "@copilotkit/react-core";
+import { CopilotSidebar } from "@copilotkit/react-ui";
 import { Toaster } from "sonner";
 
 export const links: Route.LinksFunction = () => [
@@ -34,10 +37,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 				<Links />
 			</head>
 			<body>
-				{children}
-				<ScrollRestoration />
-				<Scripts />
-				<Toaster position="top-right" />
+				<CopilotKit runtimeUrl="http://localhost:5173/copilotkit">
+					<CopilotSidebar
+						labels={{
+							title: "Task Assistant",
+							initial: "Ask a question about the tasks",
+						}}
+					>
+						{children}
+						<ScrollRestoration />
+						<Scripts />
+						<Toaster position="top-right" />
+					</CopilotSidebar>
+				</CopilotKit>
 			</body>
 		</html>
 	);
