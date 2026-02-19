@@ -21,6 +21,8 @@ const openaiForCopilotKit = Object.assign(client, {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const serviceAdapter = new OpenAIAdapter({ openai: openaiForCopilotKit as any });
 
+const urlTemplate = `${process.env.APP_URL}/task/view/<id>`
+
 const runtime = new CopilotRuntime({
   actions: () => [
     {
@@ -31,7 +33,7 @@ const runtime = new CopilotRuntime({
     -	Return the full data and the task link.
   Use the following markdown template to present the results:
   
-  ### [title](http://localhost:5173/task/view/<id>)
+  ### [title](${urlTemplate})
   
   > description
   

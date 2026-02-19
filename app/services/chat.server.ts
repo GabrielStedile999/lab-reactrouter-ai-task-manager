@@ -83,3 +83,43 @@ export async function createChatMessage(chatId: string, chatMessage: Message, an
     }
   )
 }
+
+export async function deleteChat(formData: FormData) {
+	const chatId = formData.get("chat_id") as string;
+
+	try {
+		await prisma.chatMessage.deleteMany({
+			where: {
+				chat_id: chatId,
+			},
+		});
+
+		await prisma.chat.delete({
+			where: {
+				id: chatId,
+			},
+		});
+		return { success: true };
+	} catch (error) {
+		return { success: false, error: "" };
+	}
+}
+
+export async function updateChat(formData: FormData) {
+	const chatId = formData.get("chat_id") as string;
+	const title = formData.get("title") as string;
+
+	if (!chatId) {
+		return { success: false, error: "Dados inválidos" };
+	}
+
+	try {
+		await prisma.chat.update({
+			where: { id: chatId },
+			data: { title },
+		});
+		return { success: true };
+	} catch (error) {
+		return { success: false, error: "" };
+	}
+}

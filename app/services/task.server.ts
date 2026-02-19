@@ -2,6 +2,8 @@ import type { Document } from "@langchain/core/documents";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import prisma from "prisma/prisma";
 import { z } from "zod";
+import type { SimilarTask } from "~/features/tasks/types";
+import { prepareListData } from "~/features/tasks/utils";
 import { cache } from "./cache";
 import { client } from "./chat.server";
 
@@ -16,15 +18,6 @@ export const TaskInputSchema = z.object({
 });
 
 export type TaskData = z.infer<typeof TaskInputSchema>;
-
-export type SimilarTask = {
-  id: string;
-  title: string;
-  description: string | null;
-  estimated_time: string | null;
-  similarity_score: number;
-  chunk_content: string;
-};
 
 export async function findSimilarTasks(
   title: string,
@@ -201,4 +194,72 @@ async function createEmbeddingsFromDocuments(
       };
     })
   );
+}
+
+export async function deleteTask(formData: FormData) {
+	const taskId = formData.get("task_id") as string;
+
+	if (!taskId) {
+		return { success: false, error: "Invalid data" };
+	}
+
+	try {
+		await prisma.task.delete({
+			where: {
+				id: taskId,
+			},
+		});
+		return { success: true };
+	} catch {
+		return { success: false, error: "" };
+	}
+}
+
+export async function getTasks() {
+  return await prisma.task.findMany({
+    orderBy: {
+      created_at: "desc",
+    },
+    include: {
+      chat_message: true,
+    },
+  })
+}
+
+export async function getTask(id: string) {
+  return await prisma.task.findUnique({
+    where: {
+      id: id,
+    },
+  })
+}
+
+export async function updateTask(taskId: string, formData: FormData) {
+  const taskData = {
+    chat_message_id: null,
+    title: formData.get("title") as string,
+    description: formData.get("description") as string,
+    estimated_time: formData.get("estimated_time") as string,
+    steps: prepareListData(formData.get("steps") as string),
+    suggested_tests: prepareListData(
+      formData.get("suggested_tests") as string,
+    ),
+    acceptance_criteria: prepareListData(
+      formData.get("acceptance_criteria") as string,
+    ),
+    implementation_suggestion: formData.get(
+      "implementation_suggestion",
+    ) as string,
+  };
+
+  await prisma.task.update({
+    where: {
+      id: taskId,
+    },
+    data: taskData,
+  });
+
+  await storeTaskAsEmbeddings(taskId, taskData);
+
+  return { success: true };
 }

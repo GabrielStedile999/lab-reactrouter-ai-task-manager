@@ -2,8 +2,8 @@ import prisma from "prisma/prisma";
 import { redirect } from "react-router";
 import { TasksChatbot } from "~/features/tasks/tasks-chatbot";
 import { type ChatMessage, ChatMessageRole } from "~/generated/prisma/client";
-import type { Route } from "./+types/task-new";
 import { storeTaskAsEmbeddings } from "~/services/task.server";
+import type { Route } from "./+types/task-new";
 
 export type Task = {
 	title: string;
@@ -28,7 +28,7 @@ export async function action({ request }: Route.ActionArgs) {
 	});
 
 	if (!message) {
-		return { error: "Mensagem não encontrada" };
+		return { error: "Message not found" };
 	}
 
 	const content = JSON.parse(message.content);
@@ -95,8 +95,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 			content:
 				message.role === ChatMessageRole.assistant
 					? message.content === "{}"
-						? "🤷‍♂️ Sua pergunta gerou uma resposta inválida"
-						: "✅ Solicitação atendida. Verifique o painel ao lado 👉"
+						? "🤷‍♂️ Your question generated an invalid response"
+						: "✅ Request completed. Check the panel on the side 👉"
 					: message.content,
 		}));
 		const lastMessage = chat.messages[chat.messages.length - 1];

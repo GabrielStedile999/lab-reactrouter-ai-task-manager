@@ -9,6 +9,7 @@ export default [
     route("task/new", "routes/task-new.tsx"),
     route("task/edit/:id", "routes/task-edit.tsx"),
     route("task/view/:id", "routes/task-view.tsx"),
+    route("race-cond", "routes/race-cond.tsx"),
   ]),
   // Catch-all route outside layout to avoid interfering with POST requests
   route("*", "routes/catch-all.tsx"),

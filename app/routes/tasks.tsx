@@ -1,17 +1,10 @@
-import prisma from "prisma/prisma";
 import { TasksList } from "~/features/tasks/tasks-list";
+import { deleteTask, getTasks } from "~/services/task.server";
 import type { Route } from "./+types/tasks";
 
 export async function loader() {
 	return {
-		tasks: await prisma.task.findMany({
-			orderBy: {
-				created_at: "desc",
-			},
-			include: {
-				chat_message: true,
-			},
-		}),
+		tasks: await getTasks(),
 	};
 }
 
@@ -20,25 +13,6 @@ export async function action({ request }: Route.ActionArgs) {
 	switch (formData.get("action")) {
 		case "deleteTask":
 			return deleteTask(formData);
-	}
-}
-
-async function deleteTask(formData: FormData) {
-	const taskId = formData.get("task_id") as string;
-
-	if (!taskId) {
-		return { success: false, error: "Invalid data" };
-	}
-
-	try {
-		await prisma.task.delete({
-			where: {
-				id: taskId,
-			},
-		});
-		return { success: true };
-	} catch {
-		return { success: false, error: "" };
 	}
 }
 

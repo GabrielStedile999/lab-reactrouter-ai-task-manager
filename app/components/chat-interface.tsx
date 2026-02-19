@@ -1,6 +1,6 @@
 import { Bot, Send, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useFetcher, useLoaderData } from "react-router";
+import { useFetcher, useLoaderData, useSearchParams } from "react-router";
 import { Avatar, AvatarFallback } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -18,7 +18,9 @@ export function ChatInterface() {
 	const fetcher = useFetcher();
 	const isLoading =
 		fetcher.state === "submitting" || fetcher.state === "loading";
-	const { chatId, messages } = useLoaderData<typeof loader>();
+	const [params] = useSearchParams();
+	const { messages } = useLoaderData<typeof loader>();
+	const chatId = params.get("chat");
 
 	const displayedMessages: DisplayMessage[] = optimisticMessage
 		? [...messages, optimisticMessage]
@@ -78,6 +80,11 @@ export function ChatInterface() {
 			currentInput.value = "";
 			currentInput.focus();
 		});
+
+		fetcher.submit(
+			{ chatId: chatId ?? "", message: value },
+			{ method: "POST", action: "/api/chat" },
+		);
 	};
 
 	return (
