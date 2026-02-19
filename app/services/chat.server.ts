@@ -3,7 +3,7 @@ import prisma from 'prisma/prisma';
 import { ChatMessageRole } from '~/generated/prisma/enums';
 
 export const client = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 const SYSTEM_PROMPT = `
